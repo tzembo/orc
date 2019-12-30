@@ -4,6 +4,10 @@ import (
 	"io"
 	"math"
 	"math/big"
+
+	"go.mongodb.org/mongo-driver/bson/bsontype"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 )
 
 // Decimal is a decimal type.
@@ -37,6 +41,16 @@ func (d Decimal) Float32() float32 {
 	f.SetFrac(d.Int, scaleToDenominator(d.Scale))
 	fl, _ := f.Float32()
 	return fl
+}
+
+// MarshalBSONValue implements the bson.ValueMarshaler interface.
+func (d Decimal) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	d128, err := primitive.ParseDecimal128(d.String())
+	if err != nil {
+		return bsontype.Decimal128, nil, err
+	}
+
+	return bsontype.Decimal128, bsoncore.AppendDecimal128(nil, d128), nil
 }
 
 // MarshalJSON implements the json.Marshaller interface.

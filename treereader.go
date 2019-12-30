@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/scritchley/orc/proto"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsontype"
 )
 
 var (
@@ -123,6 +125,31 @@ func createIntegerReader(kind proto.ColumnEncoding_Kind, in io.Reader, signed, s
 	default:
 		return nil, fmt.Errorf("unknown encoding: %s", kind)
 	}
+}
+
+// Int32TreeReader wraps IntegerTreeReader to return int32 values for
+// shortint and int ORC values to better support marshalling into BSON.
+type Int32TreeReader struct {
+	*IntegerTreeReader
+}
+
+// NewInt32TreeReader returns a new Int32TreeReader or an error if one occurs.
+func NewInt32TreeReader(present, data io.Reader, encoding *proto.ColumnEncoding) (*Int32TreeReader, error) {
+	reader, err := NewIntegerTreeReader(present, data, encoding)
+	if err != nil {
+		return nil, err
+	}
+	return &Int32TreeReader{reader}, nil
+}
+
+// Value implements the TreeReader interface.
+func (l *Int32TreeReader) Value() interface{} {
+	if !l.BaseTreeReader.IsPresent() {
+		return nil
+	}
+
+	// Should only attempt this because the type is a shortint or int.
+	return int32(l.IntegerReader.Int())
 }
 
 const (
@@ -526,6 +553,19 @@ type MapEntry struct {
 	Value interface{} `json:"value"`
 }
 
+// MarshalBSON implements bson.Marshaler interface.
+func (v MapEntry) MarshalBSON() ([]byte, error) {
+	key, ok := v.Key.(string)
+	if !ok {
+		return nil, errors.New("tried to marshal ORC map key, but it was not a string")
+	}
+
+	item := make(map[string]interface{})
+	item[key] = v.Value
+
+	return bson.Marshal(item)
+}
+
 // Map returns the next available row of MapEntries.
 func (m *MapTreeReader) Map() []MapEntry {
 	l := int(m.length.Int())
@@ -847,6 +887,11 @@ func (u *UnionTreeReader) Next() bool {
 type UnionValue struct {
 	Tag   int         `json:"tag"`
 	Value interface{} `json:"value"`
+}
+
+// MarshalBSONValue implements the bson.ValueMarshaler interface.
+func (v UnionValue) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	return bson.MarshalValue(v.Value)
 }
 
 // Value returns the next value as an interface{}.
