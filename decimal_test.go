@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"math/big"
 	"testing"
-
-	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
 )
 
 func TestDecimal(t *testing.T) {
@@ -30,18 +28,4 @@ func TestDecimal(t *testing.T) {
 		t.Errorf("Test failed, expected %s got %s", expected, byt)
 	}
 
-}
-
-func TestDecimalMarshalBSONValue(t *testing.T) {
-	d := Decimal{big.NewInt(-8361232), 4}
-	btype, byt, err := d.MarshalBSONValue()
-	if err != nil {
-		t.Errorf("Test failed, expected no error but got %v", err)
-	}
-
-	expected := "{\"$numberDecimal\":\"-836.1232\"}"
-	actual := bsoncore.Value{Type: btype, Data: byt}.String()
-	if expected != actual {
-		t.Errorf("Test failed, expected %s but got %s", expected, actual)
-	}
 }
