@@ -49,11 +49,11 @@ func TestWriter(t *testing.T) {
 	now := time.Unix(1478123411, 99).UTC()
 	timeIncrease := 5*time.Second + 10001*time.Nanosecond
 	length := 1000
-	var intSum int64
+	var intSum int32
 	for i := 0; i < length; i++ {
 		string1 := fmt.Sprintf("%x", rand.Int63n(1000))
 		timestamp1 := now.Add(time.Duration(i) * timeIncrease)
-		int1 := rand.Int63n(10000)
+		int1 := rand.Int31n(10000)
 		intSum += int1
 		boolean1 := int1 > 4444
 		double1 := rand.Float64()
@@ -80,13 +80,13 @@ func TestWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var compareIntSum int64
+	var compareIntSum int32
 	var previousTimestamp time.Time
 	c := r.Select("int1", "timestamp1")
 	row := 0
 	for c.Stripes() {
 		for c.Next() {
-			compareIntSum += c.Row()[0].(int64)
+			compareIntSum += c.Row()[0].(int32)
 			timestamp, ok := c.Row()[1].(time.Time)
 			if !ok {
 				t.Fatalf("Row %d: Expected a time.Time but got %T", row, c.Row()[1])
@@ -143,11 +143,11 @@ func TestWriterWithCompression(t *testing.T) {
 	now := time.Unix(1478123411, 99).UTC()
 	timeIncrease := 5*time.Second + 10001*time.Nanosecond
 	length := 10001
-	var intSum int64
+	var intSum int32
 	for i := 0; i < length; i++ {
 		string1 := fmt.Sprintf("%x", rand.Int63n(1000))
 		timestamp1 := now.Add(time.Duration(i) * timeIncrease)
-		int1 := rand.Int63n(10000)
+		int1 := rand.Int31n(10000)
 		intSum += int1
 		boolean1 := int1 > 4444
 		double1 := rand.Float64()
@@ -174,13 +174,13 @@ func TestWriterWithCompression(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var compareIntSum int64
+	var compareIntSum int32
 	var previousTimestamp time.Time
 	c := r.Select("int1", "timestamp1")
 	row := 0
 	for c.Stripes() {
 		for c.Next() {
-			compareIntSum += c.Row()[0].(int64)
+			compareIntSum += c.Row()[0].(int32)
 			timestamp, ok := c.Row()[1].(time.Time)
 			if !ok {
 				t.Fatalf("Row %d: Expected a time.Time but got %T", row, c.Row()[1])
@@ -282,9 +282,9 @@ func TestWriterWithCompressionSingleColumn(t *testing.T) {
 	}
 
 	length := 10
-	var intSum int64
+	var intSum int32
 	for i := 0; i < length; i++ {
-		int1 := int64(10)
+		int1 := int32(10)
 		intSum += int1
 		err = w.Write(int1)
 		if err != nil {
@@ -302,12 +302,12 @@ func TestWriterWithCompressionSingleColumn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var compareIntSum int64
+	var compareIntSum int32
 	c := r.Select("int1")
 	row := 0
 	for c.Stripes() {
 		for c.Next() {
-			compareIntSum += c.Row()[0].(int64)
+			compareIntSum += c.Row()[0].(int32)
 			row++
 		}
 	}
@@ -395,7 +395,7 @@ func TestWriterWithNils(t *testing.T) {
 		if i%5 == 0 {
 			values[i] = nil
 		} else {
-			values[i] = int64(i)
+			values[i] = int32(i)
 		}
 		err := w.Write(values[i])
 		if err != nil {
