@@ -91,6 +91,20 @@ func SetStripeTargetSize(stripeTargetSize int64) WriterConfigFunc {
 	}
 }
 
+func SetStripeTargetRowCount(stripeTargetRowCount int64) WriterConfigFunc {
+	return func(w *Writer) error {
+		w.stripeTargetRowCount = stripeTargetRowCount
+		return nil
+	}
+}
+
+func SetRowIndexStride(rowIndexStride uint32) WriterConfigFunc {
+	return func(w *Writer) error {
+		w.footer.RowIndexStride = ptrUint32(rowIndexStride)
+		return nil
+	}
+}
+
 func AddUserMetadata(name string, value []byte) WriterConfigFunc {
 	return func(w *Writer) error {
 		w.footer.Metadata = append(w.footer.Metadata, &proto.UserMetadataItem{
