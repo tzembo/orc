@@ -126,7 +126,7 @@ func createIntegerReader(kind proto.ColumnEncoding_Kind, in io.Reader, signed, s
 }
 
 // Int32TreeReader wraps IntegerTreeReader to return int32 values for
-// shortint and int ORC values.
+// SHORT and INT ORC values.
 type Int32TreeReader struct {
 	*IntegerTreeReader
 }
@@ -141,13 +141,19 @@ func NewInt32TreeReader(present, data io.Reader, encoding *proto.ColumnEncoding)
 }
 
 // Value implements the TreeReader interface.
-func (l *Int32TreeReader) Value() interface{} {
-	if !l.BaseTreeReader.IsPresent() {
+func (i *Int32TreeReader) Value() interface{} {
+	if !i.BaseTreeReader.IsPresent() {
 		return nil
 	}
+	v := i.IntegerReader.Int()
 
-	// Should only attempt this because the type is a shortint or int.
-	return int32(l.IntegerReader.Int())
+	// Cannot fit in Int32, return Int64.
+	if v > math.MaxInt32 || v < math.MinInt32 {
+		return i.IntegerReader.Int()
+	}
+
+	// Should only attempt this because the type is SHORT or INT.
+	return int32(v)
 }
 
 const (
