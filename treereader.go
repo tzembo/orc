@@ -125,6 +125,37 @@ func createIntegerReader(kind proto.ColumnEncoding_Kind, in io.Reader, signed, s
 	}
 }
 
+// Int32TreeReader wraps IntegerTreeReader to return int32 values for
+// SHORT and INT ORC values.
+type Int32TreeReader struct {
+	*IntegerTreeReader
+}
+
+// NewInt32TreeReader returns a new Int32TreeReader or an error if one occurs.
+func NewInt32TreeReader(present, data io.Reader, encoding *proto.ColumnEncoding) (*Int32TreeReader, error) {
+	reader, err := NewIntegerTreeReader(present, data, encoding)
+	if err != nil {
+		return nil, err
+	}
+	return &Int32TreeReader{reader}, nil
+}
+
+// Value implements the TreeReader interface.
+func (i *Int32TreeReader) Value() interface{} {
+	if !i.BaseTreeReader.IsPresent() {
+		return nil
+	}
+	v := i.IntegerReader.Int()
+
+	// Cannot fit in Int32, return Int64.
+	if v > math.MaxInt32 || v < math.MinInt32 {
+		return i.IntegerReader.Int()
+	}
+
+	// Should only attempt this because the type is SHORT or INT.
+	return int32(v)
+}
+
 const (
 	// TimestampBaseSeconds is 1 January 2015, the base value for all timestamp values.
 	TimestampBaseSeconds int64 = 1420070400

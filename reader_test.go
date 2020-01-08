@@ -29,7 +29,7 @@ func TestReadNullAtEnd(t *testing.T) {
 		t.Errorf("Expected 70000 rows, got %d", rows)
 	}
 
-	expectedLastRow := []interface{}{nil, int64(-12769), nil, nil, nil, nil, nil}
+	expectedLastRow := []interface{}{nil, int32(-12769), nil, nil, nil, nil, nil}
 
 	for i, v := range row {
 		if expectedLastRow[i] != v {

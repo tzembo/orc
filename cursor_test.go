@@ -154,15 +154,15 @@ func TestCursorSelectStripe(t *testing.T) {
 	}
 
 	expectedLastRow := []interface{}{
-		int64(1920800),
+		int32(1920800),
 		"F",
 		"U",
 		"Unknown",
-		int64(10000),
+		int32(10000),
 		"Unknown",
-		int64(6),
-		int64(6),
-		int64(6),
+		int32(6),
+		int32(6),
+		int32(6),
 	}
 
 	if len(row) != len(expectedLastRow) {

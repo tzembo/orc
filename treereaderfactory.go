@@ -25,7 +25,13 @@ func createTreeReader(schema *TypeDescription, s *Stripe) (TreeReader, error) {
 			s.get(streamName{id, proto.Stream_DATA}),
 			encoding,
 		)
-	case CategoryShort, CategoryInt, CategoryLong:
+	case CategoryShort, CategoryInt:
+		return NewInt32TreeReader(
+			s.get(streamName{id, proto.Stream_PRESENT}),
+			s.get(streamName{id, proto.Stream_DATA}),
+			encoding,
+		)
+	case CategoryLong:
 		return NewIntegerTreeReader(
 			s.get(streamName{id, proto.Stream_PRESENT}),
 			s.get(streamName{id, proto.Stream_DATA}),
